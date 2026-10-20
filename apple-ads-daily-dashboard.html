@@ -161,7 +161,7 @@ return list.map(function(x){var r=x.sample,clickCpa=x.hasClickInstalls&&x.clickI
 if(!x.hasClickInstalls){action="观察";reason="报表未提供点击归因安装，不能判断关键词点击 CPA。";}
 else if(!enabled){action="观察";reason="关键词或广告组已暂停，先核实投放状态。";}
 else if(target&&x.clicks>=20&&x.clickInstalls===0&&x.spend>=target*1.5){action="搜索词/降价复核";reason=x.clicks+" 次点击且无点击归因安装，花费达到目标 CPA 的 1.5 倍；先检查可见搜索词相关性。";if(manual&&r.maxCpt)range=fmtMoney(r.maxCpt*.85,moneyCode)+"–"+fmtMoney(r.maxCpt*.9,moneyCode)+"（仅供小幅测试）";}
-else if(x.clicks>=10&&x.clickInstalls>=3&&target&&clickCpa!==null&&clickCpa<=target*.8&&!(peerCtr!==null&&ctr!==null&&ctr<peerCtr*.5)){action="表现较好";reason="达到最低样本量，点击 CPA ≤ 目标 CPA 的 80%"+(peerCtr!==null?"，且 CTR 未明显低于同组同匹配同行":"")；}
+else if(x.clicks>=10&&x.clickInstalls>=3&&target&&clickCpa!==null&&clickCpa<=target*.8&&!(peerCtr!==null&&ctr!==null&&ctr<peerCtr*.5)){action="表现较好";reason="达到最低样本量，点击 CPA ≤ 目标 CPA 的 80%"+(peerCtr!==null?"，且 CTR 未明显低于同组同匹配同行":"");}
 else if(x.clicks>=10&&x.clickInstalls>=3&&target&&clickCpa!==null&&clickCpa>=target*1.2){if(manual){action="降价候选";reason="达到最低样本量，点击 CPA ≥ 目标 CPA 的 120%；先检查搜索词构成，再小幅测试。";if(r.maxCpt)range=fmtMoney(r.maxCpt*.85,moneyCode)+"–"+fmtMoney(r.maxCpt*.9,moneyCode)+"（建议测试区间）";}else{action="人工复核";reason="点击 CPA 高于目标 CPA 20%，但报告未确认手动 CPT，先核实出价方式。";}}
 else if(!target&&x.clicks>=10&&x.clickInstalls>=3&&peerCpa!==null&&clickCpa!==null&&clickCpa<=peerCpa*.8){action="相对优胜";reason="无目标 CPA；点击 CPA 比同日同广告组、同匹配类型同行中位数低至少 20%，仅作为扩词/搜索词复核信号。";}
 else if(!target&&x.clicks>=15&&x.clickInstalls===0){action="搜索词复核";reason="无目标 CPA；点击较多但没有点击归因安装，检查可见搜索词及相关性，不据此自动否词。";}
