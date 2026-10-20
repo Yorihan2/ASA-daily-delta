@@ -109,11 +109,11 @@ nav{display:flex;gap:6px;margin:18px 0 14px;border-bottom:1px solid var(--line)}
 (function(){
 "use strict";
 var DB_NAME="apple-ads-dashboard-history-v2";
-var DB_VERSION=1;
+var DB_VERSION=2;
 var db=null,allRows=[],fileRecords=[],folderHandle=null,currentPage="overview",moneyCode="USD";
 var id=(function(){return function(x){return document.getElementById(x);};})();
 function setStatus(text,error){var el=id("status");el.textContent=text;el.className="status"+(error?" error":"");}
-function openDB(){return new Promise(function(resolve,reject){var req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=function(){var d=req.result;if(!d.objectStoreNames.contains("rows"))d.createObjectStore("rows",{keyPath:"key"});if(!d.objectStoreNames.contains("files"))d.createObjectStore("files",{keyPath:"key"});if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings",{keyPath:"key"});};req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error);};});}
+function openDB(){return new Promise(function(resolve,reject){var req=indexedDB.open(DB_NAME,DB_VERSION);req.onblocked=function(){setStatus("请关闭旧版看板标签页后刷新此页，再载入历史库。",true);};req.onupgradeneeded=function(){var d=req.result;if(!d.objectStoreNames.contains("rows"))d.createObjectStore("rows",{keyPath:"key"});if(!d.objectStoreNames.contains("files"))d.createObjectStore("files",{keyPath:"key"});if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings",{keyPath:"key"});if(!d.objectStoreNames.contains("tracks"))d.createObjectStore("tracks",{keyPath:"id"});};req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error);};});}
 function getAll(storeName){return new Promise(function(resolve,reject){var tx=db.transaction(storeName,"readonly"),req=tx.objectStore(storeName).getAll();req.onsuccess=function(){resolve(req.result||[]);};req.onerror=function(){reject(req.error);};});}
 function getOne(storeName,key){return new Promise(function(resolve,reject){var tx=db.transaction(storeName,"readonly"),req=tx.objectStore(storeName).get(key);req.onsuccess=function(){resolve(req.result||null);};req.onerror=function(){reject(req.error);};});}
 function putOne(storeName,value){return new Promise(function(resolve,reject){var tx=db.transaction(storeName,"readwrite");tx.objectStore(storeName).put(value);tx.oncomplete=function(){resolve();};tx.onerror=function(){reject(tx.error);};});}
