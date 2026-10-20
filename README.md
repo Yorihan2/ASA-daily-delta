@@ -6,7 +6,11 @@ A Codex skill and public interactive dashboard for reviewing Apple Ads daily per
 
 Open the [Apple Ads daily dashboard](https://yorihan2.github.io/ASA-daily-delta/). The same dashboard file is available as [apple-ads-daily-dashboard.html](apple-ads-daily-dashboard.html).
 
-Upload an Apple Ads performance CSV; the dashboard automatically detects report columns, compares the latest available dates, and provides keyword spend and bidding strategy suggestions based on the report's target CPA where available. CSV processing runs in the browser on your device. Bidding suggestions are advisory and do not change Apple Ads settings.
+The dashboard includes three views: overview, historical data, and import history. It can read multiple CSVs at once. To avoid selecting files every day, choose a local folder once; when the dashboard is opened it scans that folder, and while the tab is active it checks for new or updated CSVs every two minutes. Browser folder permission may need to be renewed if the browser revokes it.
+
+Imported reports are saved in IndexedDB in that browser on that device. The dashboard deduplicates identical files and replaces a date's earlier snapshot when a newer report for that date is imported. Use the JSON backup and restore controls in the import history view to move data to another browser or device.
+
+The GitHub Pages dashboard is a static web page and cannot directly access attachments uploaded to a ChatGPT project. Save those CSVs into the chosen local folder, or import them through the dashboard. The CSVs are processed in your browser and are not uploaded to GitHub. Bidding suggestions are advisory and do not change Apple Ads settings.
 
 ## Skill
 
