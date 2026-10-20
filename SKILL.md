@@ -32,6 +32,8 @@ Save the workbook in a user-visible outputs folder and open it in Codex when use
 - **关键词出价建议**: one row per actionable unit, grouped by ad-group ID/name, keyword ID/text, match type, and match source. Include the current reported keyword max CPT, target CPA and its source, spend, impressions, clicks, click/view installs, click CPA, total CPA, CTR, click-install conversion rate, same-group/same-match peer medians, principal search terms, recommendation, rationale, suggested test range, ad-group name/ID, and review/rollback condition.
 - **搜索词筛选动作**: visible query candidates to promote to exact match or manually review for negation, with triggering keyword and ad-group ID/name.
 
+For each daily upload, deliver both the daily analysis workbook and the dashboard link. The dashboard's historical data page maintains the appendable, chronological daily keyword master table from imported CSV history. It includes only keywords that qualify as performance leaders or actionable review candidates, with the same decision evidence and ad-group dimensions as the workbook. The dashboard can export the currently selected history range as CSV or an Excel-compatible .xls file. A newer import for a date replaces that date's old snapshot, so corrected reports update the historical table without duplicating rows. Keep the daily workbook as a separate downloadable artifact and use its existing worksheet structure.
+
 Keep tables black and white; mark keyword names in red where useful. Sort actionable recommendations ahead of observation rows. If ad-group fields are missing, say the group cannot be confirmed; do not substitute a campaign ID or historical name as current attribution.
 
 ## Period and metric rules
@@ -68,5 +70,5 @@ Use the following conservative defaults as review flags, not universal truths; a
 - Keep spend growth separate from efficiency changes. Show click and view attribution separately; do not use total-install CPA alone to recommend keyword bids.
 - Validate that daily totals reconcile to the source, the latest-day net change equals current spend minus prior spend, cross-report overlap agrees when two reports are supplied, and the workbook exports without formula errors.
 
-Keep the final answer concise: report net spend movement, main performance/action signals, attribution and sample-size caveats, and link the workbook.
+Keep the final answer concise: report net spend movement, main performance/action signals, attribution and sample-size caveats, then provide both the daily workbook and the dashboard link. If the CSV was uploaded only as a ChatGPT project attachment and has not been saved into the folder authorized by the dashboard, explain that the dashboard page cannot ingest that attachment directly; do not claim its local history has been updated. The user can save the CSV into the linked folder and let the dashboard sync it, or import it through the dashboard.
 
