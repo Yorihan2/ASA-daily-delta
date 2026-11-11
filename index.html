@@ -105,7 +105,7 @@ nav{display:flex;gap:6px;margin:18px 0 14px;border-bottom:1px solid var(--line)}
 <footer class="footer">计算按导入 CSV 中的日期、支出和安装字段汇总；总安装可能包含浏览归因。目标 CPA、出价上限和广告组信息只在源报表提供时显示。目录读取与历史记录均在当前浏览器本地运行。</footer>
 </main>
 
-<script src="decision-engine.js?v=20261106"></script>
+<script src="decision-engine.js?v=20261111"></script>
 <script src="decision-ui.js?v=20261106"></script>
 <script>
 (function(){
@@ -137,7 +137,7 @@ function fmtDate(iso){var a=String(iso||"").split("-");return a.length===3?a[1]+
 function hashFile(file){return file.arrayBuffer().then(function(buf){if(window.crypto&&crypto.subtle)return crypto.subtle.digest("SHA-256",buf).then(function(hash){return Array.from(new Uint8Array(hash)).map(function(x){return x.toString(16).padStart(2,"0");}).join("");});return file.name+"|"+file.size+"|"+file.lastModified;});}
 function mergeRecord(oldRow,newRow){if(!oldRow)return newRow;var merged=Object.assign({},oldRow,newRow);["campaignName","groupName","keywordId","keywordStatus","groupStatus","strategy"].forEach(function(k){if(!newRow[k]&&oldRow[k])merged[k]=oldRow[k];});["clickInstalls","viewInstalls","maxCpt","targetCpa","dailyBudget"].forEach(function(k){if((newRow[k]===null||newRow[k]===undefined)&&oldRow[k]!==null&&oldRow[k]!==undefined)merged[k]=oldRow[k];});return merged;}
 async function importFile(file){var digest=await hashFile(file);var oldFile=await getOne("files",digest);if(oldFile)return{skipped:true,name:file.name};var parsed=parseReport(await file.text());var importedAt=new Date().toISOString(),items=[],dates=[];parsed.records.forEach(function(r){var x=normalize(r,parsed.currency,file.name,importedAt);if(x){items.push(x);dates.push(x.date);}});if(!items.length)throw new Error("文件中未找到带日期的数据行："+file.name);var existing=await getAll("rows"),map=new Map(existing.map(function(x){return[x.key,x];}));items=items.map(function(x){return mergeRecord(map.get(x.key),x);});var affected=new Set(dates),byKey=new Map();existing.filter(function(x){return!affected.has(x.date);}).forEach(function(x){byKey.set(x.key,x);});items.forEach(function(x){byKey.set(x.key,x);});await replaceRows(Array.from(byKey.values()));var sortedDates=dates.slice().sort();var meta={key:digest,name:file.name,size:file.size,lastModified:file.lastModified,importedAt:importedAt,rowCount:items.length,minDate:sortedDates[0],maxDate:sortedDates[sortedDates.length-1],currency:parsed.currency};await putOne("files",meta);return{skipped:false,name:file.name,rows:items.length,minDate:meta.minDate,maxDate:meta.maxDate};}
-async function importFiles(files){if(!files||!files.length)return;files=Array.from(files).sort(function(a,b){return a.lastModified-b.lastModified;});setStatus("正在读取并保存日报…");var done=0,skipped=0,failed=[];for(var i=0;i<files.length;i++){try{var r=await importFile(files[i]);if(r.skipped)skipped++;else done+=r.rows;}catch(e){failed.push(files[i].name+": "+e.message);}}await refresh();var message="导入完成：新增或更新 "+done.toLocaleString()+" 行，重复文件跳过 "+skipped+" 个。";if(failed.length)message+=" 未读取："+failed.join("；");setStatus(message,failed.length>0);}
+async function importFiles(files){if(!files||!files.length)return;files=Array.from(files).sort(function(a,b){return a.lastModified-b.lastModified;});setStatus("正在读取并保存日报…");var done=0,skipped=0,failed=[],warnings=[];for(var i=0;i<files.length;i++){try{var r=await importFile(files[i]);if(r.skipped)skipped++;else{done+=r.rows;if(r.warning)warnings.push(r.name+"："+r.warning);}}catch(e){failed.push(files[i].name+": "+e.message);}}await refresh();var message="导入完成：新增或更新 "+done.toLocaleString()+" 行，重复文件跳过 "+skipped+" 个。";if(warnings.length)message+=" 格式说明："+warnings.join("；");if(failed.length)message+=" 未读取："+failed.join("；");setStatus(message,failed.length>0);}
 async function refresh(){allRows=await getAll("rows");fileRecords=(await getAll("files")).sort(function(a,b){return b.importedAt.localeCompare(a.importedAt);});var currencies={};allRows.forEach(function(r){currencies[r.currency]=(currencies[r.currency]||0)+r.spend;});moneyCode=Object.keys(currencies).sort(function(a,b){return currencies[b]-currencies[a];})[0]||"USD";id("storageBadge").textContent=allRows.length?fmtNum(allRows.length)+" 行历史":"本机历史库";render();}
 function selectedRows(from,to){return allRows.filter(function(r){return(!from||r.date>=from)&&(!to||r.date<=to);});}
 function sumRows(rows){return rows.reduce(function(a,r){a.spend+=r.spend;a.impressions+=r.impressions;a.clicks+=r.clicks;a.installs+=r.installs;if(r.clickInstalls!==null&&r.clickInstalls!==undefined){a.clickInstalls+=r.clickInstalls;a.hasClickInstalls=true;}else a.hasMissingClickInstalls=true;return a;},{spend:0,impressions:0,clicks:0,installs:0,clickInstalls:0,hasClickInstalls:false,hasMissingClickInstalls:false});}
@@ -230,8 +230,8 @@ importFile=async function(file){
  if(!items.length)throw Error('未找到逐日明细：'+file.name);
  var store=parsed.kind==='share'?'shares':'rows',existing=await getAll(store),version=Number(file.lastModified)||Date.now();
  var merged=window.AdsDecision.snapshotMerge(existing,items,parsed.kind==='share'?shareScope:performanceScope,version),dates=items.map(function(r){return r.date;}).sort();
- await commitImport(store,merged,{key:digest,name:file.name,kind:parsed.kind,slot:parsed.slot,timezone:parsed.timezone,size:file.size,lastModified:file.lastModified,importedAt:now,rowCount:items.length,minDate:dates[0],maxDate:dates[dates.length-1],currency:parsed.currency});
- return {skipped:false,name:file.name,rows:items.length};
+ await commitImport(store,merged,{key:digest,name:file.name,kind:parsed.kind,slot:parsed.slot,timezone:parsed.timezone,size:file.size,lastModified:file.lastModified,importedAt:now,rowCount:items.length,minDate:dates[0],maxDate:dates[dates.length-1],currency:parsed.currency,warning:parsed.warning||''});
+ return {skipped:false,name:file.name,rows:items.length,warning:parsed.warning||''};
 };
 refresh=async function(){shareRows=await getAll('shares');await originalRefresh();if(decisionView)await decisionView.render();};
 clearAll=async function(){await originalClearAll();await new Promise(function(resolve,reject){var tx=db.transaction('shares','readwrite');tx.objectStore('shares').clear();tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error);};});};
@@ -248,3 +248,4 @@ start();
 </script>
 </body>
 </html>
+
